@@ -6,8 +6,9 @@ program unreal
   print *,f(3,3,0.5)
   print *,f(4,4,0.5)
   print *,f(5,5,0.5)
-  print *,1-f(10,2,0.51)
-  print *,1-f(10,3,0.51)
+  print *,f(10,2,0.70)
+  print *,1-f(2,10,0.30)
+  print *,f(10,10,0.70)
   
 end program unreal
 
