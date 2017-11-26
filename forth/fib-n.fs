@@ -22,3 +22,4 @@ defer nacci
 ." tribonacci: " a{ 1 , 1 , 2 } show-nacci
 ." tetranacci: " a{ 1 , 1 , 2 , 4 } show-nacci
 ." lucas: " a{ 2 , 1 } show-nacci
+bye
