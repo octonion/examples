@@ -1,2 +1,2 @@
 # examples
-Various examples programs in a variety of languages.
+Various example programs in a variety of languages.
