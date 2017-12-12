@@ -1,0 +1,24 @@
+* Recursive
+	define('rfact(n)') :(rfact_end)
+rfact   rfact = le(n,0) 1 :s(return)
+        rfact = n * rfact(n - 1) :(return)
+rfact_end
+
+* Tail-recursive
+        define('trfact(n,f)') :(trfact_end)
+trfact  trfact = le(n,0) f :s(return)
+        trfact = trfact(n - 1, n * f) :(return)
+trfact_end
+
+* Iterative
+        define('ifact(n)') :(ifact_end)
+ifact   ifact = 1
+if1     ifact = gt(n,0) n * ifact :f(return)
+        n = n - 1 :(if1)
+ifact_end
+
+* Test and display factorials 0 .. 15
+
+loop    i = le(i,15) i + 1 :f(end)
+        output = rfact(i) ' ' trfact(i,1) ' ' ifact(i) :(loop)
+end

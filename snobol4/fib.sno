@@ -1,0 +1,29 @@
+* Recursive
+	define("fib(a)")	:(fib_end)
+fib	fib = lt(a,2) a	:s(return)
+	fib = fib(a - 1) + fib(a - 2)	:(return)
+fib_end
+ 
+* Tail-recursive
+        define('trfib(n,a,b)') :(trfib_end)
+trfib   trfib = eq(n,0) a :s(return)
+        trfib = trfib(n - 1, a + b, a) :(return)
+trfib_end
+
+* Iterative
+        define('ifib(n)f1,f2') :(ifib_end)
+ifib    ifib = le(n,2) 1 :s(return)
+        f1 = 1; f2 = 1
+if1     ifib = gt(n,2) f1 + f2 :f(return)
+        f1 = f2; f2 = ifib; n = n - 1 :(if1)
+ifib_end
+
+* while	a = trim(input)	:f(end)
+*	output = a " " fib(a)	:(while)
+* end
+
+* Test and display Fibonacci 0 .. 15
+
+loop    i = le(i,15) i + 1 :f(end)
+        output = fib(i) ' ' trfib(i,1) ' ' ifib(i) :(loop)
+end
