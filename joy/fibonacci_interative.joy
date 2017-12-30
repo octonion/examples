@@ -1,0 +1,5 @@
+DEFINE fib == [1 0] dip [swap [+] unary] times popd.
+
+10 fib.
+15 fib.
+
