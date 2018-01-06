@@ -17,6 +17,6 @@
  
 .MyArray                             \ 0 0 0 0 0 0 30 0 0 0 
 5fillMyArray 
-.MyArray                             \ 1 2 3 4 5 0 30 0 0 0 
+.MyArray cr                          \ 1 2 3 4 5 0 30 0 0 0 
 
 bye

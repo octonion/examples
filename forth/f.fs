@@ -1,0 +1,13 @@
+( Large letter F )
+: STAR 42 EMIT ;
+: STARS
+  0 DO STAR LOOP ;
+: MARGIN CR 30 SPACES ;
+: BLIP MARGIN STAR ;
+: BAR MARGIN 5 STARS ;
+: F BAR BLIP BAR BLIP BLIP CR ;
+
+F
+bye
+
+
