@@ -1,0 +1,13 @@
+[0:2]INT deck;
+FOR i FROM 0 TO 2
+DO
+  deck[i] := 1
+OD;
+print((deck,new line));
+FOR i FROM 0 TO 2
+DO
+  deck[i] +:= 1
+OD;
+print((deck,new line));
+deck[0:2] := (2,2,2);
+print((deck,new line))

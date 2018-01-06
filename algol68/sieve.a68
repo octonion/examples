@@ -1,0 +1,31 @@
+begin # Algol-68 prime number sieve, functional style #
+  
+  proc error = (string s) void:
+     (print(( newline, " error: ", s, newline)); goto stop);
+  proc one to = (int n) list:
+     (proc f = (int m,n) list: (m>n | nil | cons(m, f(m+1,n))); f(1,n));
+  
+  mode list = ref node;
+  mode node = struct (int h, list t);
+  proc cons = (int n, list l) list: heap node := (n,l);
+  proc hd   = (list l) int: ( l is nil | error("hd nil"); skip | h of l );
+  proc tl   = (list l) list: ( l is nil | error("tl nil"); skip | t of l );
+  proc show = (list l) void: ( l isnt nil | print((" ",whole(hd(l),0))); show(tl(l)));
+  
+  proc filter = (proc (int) bool p, list l) list:
+     if l is nil then nil
+     elif p(hd(l)) then cons(hd(l), filter(p,tl(l)))
+     else filter(p, tl(l))
+     fi;
+  
+  proc sieve = (list l) list:
+     if l is nil then nil
+     else
+        proc not multiple = (int n) bool: n mod hd(l) ne 0;
+        cons(hd(l), sieve( filter( not multiple, tl(l) )))
+     fi;
+  
+  proc primes = (int n) list: sieve( tl( one to(n) ));
+  
+  show( primes(100) )
+end

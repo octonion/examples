@@ -1,0 +1,31 @@
+BEGIN
+    INT i;
+    [0:1000]INT candidates;
+	FOR i FROM 0 BY 1 TO 1000
+	DO
+		candidates[i] := 1
+	OD;
+	candidates[0] := 0;
+	candidates[1] := 0;
+	i := 0;
+	WHILE i<1000
+    DO
+		WHILE (i<1000 & candidates[i] = 0)
+		DO
+			i := i + 1
+		OD;
+		IF i<1000 THEN
+			FOR j FROM 2 BY 1 WHILE j*i < 1000
+			DO
+				candidates[j*i] := 0
+			OD;
+			i := i + 1
+		FI
+	OD;
+	FOR i FROM 0 BY 1 TO 999
+	DO
+		IF candidates[i] /= 0 THEN
+            print((i, " is prime"))
+  		FI
+	OD
+END
