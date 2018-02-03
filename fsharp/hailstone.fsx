@@ -1,8 +1,8 @@
 let rec hailstone n = seq {
-  match n with
-  | 1                -> yield 1
-  | n when n % 2 = 0 -> yield n; yield! hailstone (n / 2)
-  | n                -> yield n; yield! hailstone (n * 3 + 1)
+    match n with
+    | 1                -> yield 1
+    | n when n % 2 = 0 -> yield n; yield! hailstone (n / 2)
+    | n                -> yield n; yield! hailstone (n * 3 + 1)
 }
  
 let hailstone27 = hailstone 27 |> Array.ofSeq
