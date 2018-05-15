@@ -1,0 +1,285 @@
+Hi,
+
+I would like to be able to call Ada from Python, so I created a simple
+example of a Python module written in C which in turn calls functions 
+written in Ada. It works, but one thing is a bit awkward and I am hoping
+that someone here can help me to improve it.
+
+I have attached the C source file that creates the Python module as
+listing one, and the Ada package (specification and body) that it calls
+as listing two. For good measure, listing three shows how I built all
+of this under Linux.
+
+The awkwardness comes from the lines (marked AWKWARD in the C source
+code) that start and stop the Ada runtime library. It is awkward 
+because I start and stop it for each function call. Now, I know that I 
+could turn off the Ada runtime without giving up anything significant 
+as far as this simple example is concerned (though any pointers about 
+how to do this or comments about what capabilities I sacrifice will 
+be appreciated). But I am wondering if Python would allow a better 
+solution.
+
+To create a Python extension in C, a module initialization function
+must be provided (in this case it is called initnumberPlay()). It is
+clear to me that the call to adainit(), which starts the Ada runtime,
+could easily be put into this function so that the Ada runtime would
+be started when the module is loaded. But how can I ensure that the
+Ada runtime is shutdown when the module exits? 
+
+I haven't found anything in my reading that suggests a method of 
+cleaning up when a module is unloaded. I do recall reading that the
+Python interpreter unloads modules before shutting down, so all that
+I would need to worry about is triggering a call to adafinal() when
+the module numberPlay is unloaded. If anyone has any suggestions on
+how to do this, or any other suggestions for improving this code,
+please let me know.
+
+David Hoffman
+hoffman at insync.net
+
+
+=============================<LISTING ONE>==============================
+
+
+/*********************************************************************
+ *                                                                   *
+ *     File: numberPlay.c                                            *
+ *                                                                   *
+ *  Purpose: To provide a demonstration of how to write a C wrapper  *
+ *           for Ada functions called from Python.                   *
+ *                                                                   *
+ *   Author: David Hoffman                                           *
+ *           hoffman at insync.net                                      *
+ *                                                                   *
+ *********************************************************************/
+
+#include <Python.h>
+
+/* Declare external functions....................................... */
+
+extern adainit();
+extern adafinal();
+extern long adafactorial(long N);
+extern long adagcd(long P, long Q);
+
+/* C functions used to extend Python................................. */
+
+long factorial (long value)                      /* Compute factorial */
+{
+  long answer;
+
+  adainit();                                               /* AWKWARD */
+  answer = adafactorial(value);
+  adafinal();                                              /* AWKWARD */
+
+  return answer;
+}
+
+long gcd (long x, long y)          /* Compute greatest common divisor */
+{
+  long answer;
+
+  adainit();                                               /* AWKWARD */
+  answer = adagcd(x,y);
+  adafinal();                                              /* AWKWARD */
+
+  return answer;
+}
+
+/* C wrapper functions for Python extensions......................... */
+
+PyObject *wrap_factorial(PyObject *self, PyObject *args) 
+{
+  int n, result;
+
+  if (!PyArg_ParseTuple(args,"i",&n))
+      return NULL;
+
+  if ( n > 0 )                                   /* Input error check */
+     {
+       if ( n <= 12 )
+     {
+            result = factorial(n);
+     }
+       else
+     {
+            PyErr_SetString(PyExc_ValueError,"Input would cause overflow");
+            return NULL;
+     }
+     }
+  else
+     {
+       PyErr_SetString(PyExc_ValueError,"Input must be non-negative");
+       return NULL;
+     }
+
+  return Py_BuildValue("i",result);
+}
+
+PyObject *wrap_gcd(PyObject *self, PyObject *args)
+{
+  int p, q, result;
+
+  if (!PyArg_ParseTuple(args,"ii",&p,&q))
+      return NULL;
+  
+  if ( p <= 0 || q <= 0 )                        /* Input error check */
+     {
+       PyErr_SetString(PyExc_ValueError,"Both inputs must be positive");
+       return NULL;
+     }
+  else
+     {
+       result = gcd(p,q);
+     }
+
+  return  Py_BuildValue("i",result);
+}
+
+/* Define methods table.............................................. */
+
+static PyMethodDef numberPlayMethods[] = {
+  { "factorial" , wrap_factorial , 1 },
+  { "gcd"       , wrap_gcd       , 1 },
+  { NULL , NULL },
+};
+
+/* Initialization function........................................... */
+
+void initnumberPlay() 
+{
+  PyObject *m;
+  m = Py_InitModule("numberPlay", numberPlayMethods);
+}
+
+
+=============================<LISTING TWO>==============================
+
+
+------------------------------------------------------------------------
+--                                                                    --
+--     File:  integer_functions.ads                                   --
+--                                                                    --
+--  Purpose:  To demonstrate how to export Ada functions to C with    --
+--            the ultimate goal of making them callable from Python   --
+--            scripts.                                                --
+--                                                                    --
+--   Author:  David Hoffman                                           --
+--            hoffman at insync.net                                      --
+--                                                                    --
+------------------------------------------------------------------------
+
+  with Interfaces.C;    use Interfaces;
+
+package Integer_Functions is
+
+  function Ada_Factorial ( Value : C.Long ) return C.Long;
+
+  function Ada_GCD ( Dividend, Divisor : C.Long ) return C.Long;
+
+  pragma Export (C, Ada_Factorial, "adafactorial");
+
+  pragma Export (C, Ada_GCD, "adagcd");
+
+end Integer_Functions;
+
+------------------------------------------------------------------------
+--                                                                    --
+--     File:  integer_functions.adb                                   --
+--                                                                    --
+--  Purpose:  To compute either the factorial of a given integer or   --
+--            the greatest common divisor of a pair of integers with  --
+--            Ada code invoked from a Python script.                  --
+--                                                                    --
+--   Author:  David Hoffman                                           --
+--            hoffman at insync.net                                      --
+--                                                                    --
+------------------------------------------------------------------------
+
+  with Interfaces.C;    use Interfaces;
+
+package body Integer_Functions is
+
+------------------------------------------------------------------------
+--                P R I V A T E   F U N C T I O N S                   --
+------------------------------------------------------------------------
+--
+--   In a "real world" application, the functions in this section
+--   would be defined and implemented in an external package that
+--   would be linked to this one via with and use statements.
+--
+-- Compute factorial....................................................
+
+function Factorial ( N : Integer ) return Integer is
+  begin
+     if N = 1 then
+        return 1;
+     else
+        return N * Factorial(N-1);
+     end if;
+  end;
+
+-- Compute greatest common divisor......................................
+
+function GCD ( I, J : Natural ) return Natural is
+  begin
+    if J = 0 then
+       return I;
+    else
+       return GCD(J, I mod J );
+    end if;
+  end;
+
+------------------------------------------------------------------------
+--                 P U B L I C   F U N C T I O N S                    --
+------------------------------------------------------------------------
+
+-- Export factorial.....................................................
+
+function Ada_Factorial ( Value : C.Long ) return C.Long is
+   P, Q : Integer;
+begin
+   P := Integer(Value);
+   Q := Factorial(P);
+   return C.Long(Q);
+end;
+
+-- Export greatest common divisor.......................................
+
+function Ada_GCD ( Dividend, Divisor : C.Long ) return C.Long is
+   N, P, Q : Natural;
+begin
+   N := Natural(Dividend);
+   P := Natural(Divisor);
+   Q := GCD(N,P);
+   return C.Long(Q);
+end;
+
+end Integer_Functions;
+
+
+============================<LISTING THREE>=============================
+
+
+This example was built under Linux (kernel 2.0.33, libc 5.4.33) using 
+the GNAT Ada compiler (version 3.11p). It runs under Python 1.5. 
+The first step is to compile the Ada components:
+
+  $ gcc -c integer_functions.ads
+  $ gcc -c integer_functions.adb
+  $ gnatbind -n integer_functions.ali
+  $ gcc -c b_integer_functions.c
+
+Then compile the C component:
+
+  $ gcc -fpic -c -I/usr/local/include/python1.5 \
+        -I/usr/local/lib/python1.5/config \
+        numberPlay.c
+
+Finally, link it all together:
+
+  $ gcc -shared -o numberPlay.so \
+        -L/usr/lib/gcc-lib/i686-pc-linux-gnulibc1/2.8.1/adalib \
+        *.o -lgnat
+
+Good luck.
