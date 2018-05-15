@@ -11,7 +11,7 @@ import (
 
 /* Decks */
 
-const decks = 100
+const decks = 1
 
 const hit_soft_17 = false
 
